@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Box,
   Typography,
@@ -11,17 +11,28 @@ import {
   Avatar,
   IconButton,
   Tooltip,
+  Tabs,
+  Tab,
+  TextField,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemSecondaryAction,
 } from "@mui/material";
 import {
   Phone as PhoneIcon,
   Email as EmailIcon,
-  LocationOn as LocationIcon,
   Business as BusinessIcon,
   WhatsApp as WhatsAppIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
+  Star as StarIcon,
+  Source as SourceIcon,
+  History as HistoryIcon,
+  Note as NoteIcon,
+  Notifications as NotificationsIcon,
+  Save as SaveIcon,
+  CheckCircle as CheckCircleIcon,
+  RadioButtonUnchecked as RadioButtonUncheckedIcon,
 } from "@mui/icons-material";
-import { useRouter } from "next/navigation";
 import Layout from "@/components/Layout";
 import { useNotification } from "@/contexts/NotificationContext";
 
@@ -38,43 +49,207 @@ interface Lead {
     | "proposal"
     | "negotiation"
     | "closed";
+  stage: "Aguardando" | "Em atendimento" | "Perdido";
+  temperature: "Cinza" | "Amarelo" | "Vermelho";
   source: string;
   notes: string;
+  interest: string;
+  product: string;
+  model: string;
+  value: number;
+  reminders: Array<{
+    id: string;
+    text: string;
+    date: string;
+    completed: boolean;
+  }>;
+  messages: Array<{
+    id: string;
+    date: string;
+    type: "whatsapp" | "email" | "ligacao" | "visita";
+    content: string;
+    direction: "sent" | "received";
+  }>;
+  history: Array<{
+    date: string;
+    action: string;
+  }>;
   createdAt: string;
   updatedAt: string;
+  site?: string;
+  socialMedia?: string;
+  visit?: string;
 }
 
-const id = "123";
-export default function LeadDetails() {
-  const [lead, setLead] = useState<Lead | null>(null);
-  const router = useRouter();
+interface PageProps {
+  params: {
+    id: string;
+  };
+}
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`lead-tabpanel-${index}`}
+      aria-labelledby={`lead-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
+  );
+}
+
+export default function LeadDetails({ params }: PageProps) {
+  const [tabValue, setTabValue] = useState(0);
+  const [value, setValue] = useState(0);
   const { showNotification } = useNotification();
 
-  useEffect(() => {
-    // Aqui você faria a chamada à API para buscar os detalhes do lead
-    // Por enquanto, vamos usar dados mockados
-    setLead({
-      id: id,
-      name: "João Silva",
-      email: "joao@example.com",
-      phone: "(11) 99999-9999",
-      company: "Empresa XYZ",
-      status: "new",
-      source: "Website",
-      notes: "Cliente interessado em nosso produto premium.",
-      createdAt: "2024-01-01T10:00:00Z",
-      updatedAt: "2024-01-01T10:00:00Z",
-    });
-  }, [id]);
+  // Mock data for demonstration
+  const [lead, setLead] = useState<Lead>({
+    id: params.id,
+    name: "João Silva",
+    email: "joao@example.com",
+    phone: "(11) 99999-9999",
+    company: "Empresa XYZ",
+    status: "new",
+    stage: "Aguardando",
+    temperature: "Cinza",
+    source: "Website",
+    notes: "Cliente interessado em nosso produto premium.",
+    interest: "Produto Premium",
+    product: "Sedan",
+    model: "Comfort",
+    value: 4999.99,
+    reminders: [
+      {
+        id: "1",
+        text: "Ligar novamente em 7 dias",
+        date: "2024-01-07T00:00:00Z",
+        completed: false,
+      },
+      {
+        id: "2",
+        text: "Enviar proposta comercial",
+        date: "2024-01-10T00:00:00Z",
+        completed: true,
+      },
+    ],
+    messages: [
+      {
+        id: "1",
+        date: "2024-01-01T10:00:00Z",
+        type: "whatsapp",
+        content: "Olá, gostaria de saber mais sobre o carro que vi no site.",
+        direction: "received",
+      },
+      {
+        id: "2",
+        date: "2024-01-01T10:05:00Z",
+        type: "whatsapp",
+        content: "Claro! Qual modelo você está interessado?",
+        direction: "sent",
+      },
+      {
+        id: "3",
+        date: "2024-01-02T15:30:00Z",
+        type: "email",
+        content: "Enviando a proposta comercial conforme solicitado.",
+        direction: "sent",
+      },
+      {
+        id: "4",
+        date: "2024-01-03T09:00:00Z",
+        type: "ligacao",
+        content: "Cliente confirmou interesse no modelo Sedan Comfort.",
+        direction: "sent",
+      },
+    ],
+    history: [
+      { date: "2024-01-01", action: "Lead criado" },
+      { date: "2024-01-02", action: "Primeiro contato realizado" },
+    ],
+    createdAt: "2024-01-01T10:00:00Z",
+    updatedAt: "2024-01-01T10:00:00Z",
+  });
 
-  const handleEdit = () => {
-    router.push(`/leads/${id}/edit`);
+  // Mock data for products and models
+  const products = [
+    { id: "1", name: "Sedan" },
+    { id: "2", name: "SUV" },
+    { id: "3", name: "Hatch" },
+    { id: "4", name: "Pickup" },
+  ];
+
+  const models = {
+    "1": [
+      { id: "1", name: "Comfort" },
+      { id: "2", name: "Luxury" },
+      { id: "3", name: "Sport" },
+    ],
+    "2": [
+      { id: "1", name: "Compact" },
+      { id: "2", name: "Mid-size" },
+      { id: "3", name: "Full-size" },
+    ],
+    "3": [
+      { id: "1", name: "Basic" },
+      { id: "2", name: "Premium" },
+      { id: "3", name: "GT" },
+    ],
+    "4": [
+      { id: "1", name: "Standard" },
+      { id: "2", name: "Off-road" },
+      { id: "3", name: "Luxury" },
+    ],
   };
 
-  const handleDelete = () => {
-    // Aqui você implementaria a lógica de deleção
-    showNotification("Lead deletado com sucesso!", "success");
-    router.push("/leads");
+  const [newReminder, setNewReminder] = useState({
+    text: "",
+    date: "",
+  });
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+  };
+
+  const handleSave = () => {
+    if (newReminder.text && newReminder.date) {
+      const newReminderObj = {
+        id: Date.now().toString(),
+        text: newReminder.text,
+        date: newReminder.date,
+        completed: false,
+      };
+      setLead({
+        ...lead,
+        reminders: [...lead.reminders, newReminderObj],
+      });
+      setNewReminder({ text: "", date: "" });
+      showNotification("Lembrete adicionado com sucesso!", "success");
+    }
+  };
+
+  const handleInputChange = (field: keyof Lead, value: string | number) => {
+    setLead({
+      ...lead,
+      [field]: value,
+    });
+  };
+
+  const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value === "" ? 0 : parseFloat(e.target.value);
+    setValue(newValue);
+    handleInputChange("value", newValue);
   };
 
   const getStatusColor = (status: Lead["status"]) => {
@@ -96,158 +271,451 @@ export default function LeadDetails() {
     }
   };
 
-  if (!lead) {
-    return (
-      <Layout>
-        <Box sx={{ p: 3 }}>
-          <Typography>Carregando...</Typography>
-        </Box>
-      </Layout>
-    );
-  }
+  const handleToggleReminder = (id: string) => {
+    setLead({
+      ...lead,
+      reminders: lead.reminders.map((reminder) =>
+        reminder.id === id
+          ? { ...reminder, completed: !reminder.completed }
+          : reminder
+      ),
+    });
+  };
 
   return (
     <Layout>
       <Box sx={{ p: 3 }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
-          <Typography variant="h4" component="h1">
-            Detalhes do Lead
-          </Typography>
-          <Box>
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<EditIcon />}
-              onClick={handleEdit}
-              sx={{ mr: 1 }}
-            >
-              Editar
-            </Button>
-            <Button
-              variant="outlined"
-              color="error"
-              startIcon={<DeleteIcon />}
-              onClick={handleDelete}
-            >
-              Excluir
-            </Button>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Avatar sx={{ width: 64, height: 64, mr: 2 }}>
+              {lead.name.charAt(0)}
+            </Avatar>
+            <Box>
+              <Typography variant="h4" component="h1">
+                {lead.name}
+              </Typography>
+              <Chip
+                label={lead.status}
+                color={getStatusColor(lead.status)}
+                size="small"
+                sx={{ mt: 1 }}
+              />
+            </Box>
           </Box>
         </Box>
 
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={8}>
-            <Paper
-              sx={{
-                p: 3,
-                backgroundColor: "rgba(255, 255, 255, 0.1)",
-                backdropFilter: "blur(10px)",
-                WebkitBackdropFilter: "blur(10px)",
-                "@media (prefers-color-scheme: dark)": {
-                  backgroundColor: "rgba(0, 0, 0, 0.1)",
-                },
-              }}
-            >
-              <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-                <Avatar sx={{ width: 64, height: 64, mr: 2 }}>
-                  {lead.name.charAt(0)}
-                </Avatar>
-                <Box>
-                  <Typography variant="h5" component="h2">
-                    {lead.name}
-                  </Typography>
-                  <Chip
-                    label={lead.status}
-                    color={getStatusColor(lead.status)}
-                    size="small"
-                    sx={{ mt: 1 }}
-                  />
-                </Box>
-              </Box>
+        <Paper
+          sx={{
+            backgroundColor: "rgba(255, 255, 255, 0.1)",
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
+            "@media (prefers-color-scheme: dark)": {
+              backgroundColor: "rgba(0, 0, 0, 0.1)",
+            },
+          }}
+        >
+          <Tabs
+            value={tabValue}
+            onChange={handleTabChange}
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{
+              borderBottom: 1,
+              borderColor: "divider",
+            }}
+          >
+            <Tab icon={<PhoneIcon />} label="Contato" />
+            <Tab icon={<StarIcon />} label="Interesse" />
+            <Tab icon={<SourceIcon />} label="Fonte" />
+            <Tab icon={<BusinessIcon />} label="Status" />
+            <Tab icon={<HistoryIcon />} label="Histórico" />
+            <Tab icon={<NoteIcon />} label="Observações" />
+            <Tab icon={<NotificationsIcon />} label="Lembrete" />
+          </Tabs>
 
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                    <EmailIcon sx={{ mr: 1 }} />
-                    <Typography>{lead.email}</Typography>
-                  </Box>
+          <TabPanel value={tabValue} index={0}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Nome"
+                  value={lead.name}
+                  onChange={(e) => handleInputChange("name", e.target.value)}
+                  margin="normal"
+                  InputProps={{
+                    startAdornment: (
+                      <BusinessIcon sx={{ mr: 1, color: "text.secondary" }} />
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="E-mail"
+                  value={lead.email}
+                  onChange={(e) => handleInputChange("email", e.target.value)}
+                  margin="normal"
+                  InputProps={{
+                    startAdornment: (
+                      <EmailIcon sx={{ mr: 1, color: "text.secondary" }} />
+                    ),
+                  }}
+                />
+                <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<SaveIcon />}
+                    onClick={handleSave}
+                  >
+                    Salvar
+                  </Button>
+                </Box>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Telefone"
+                  value={lead.phone}
+                  onChange={(e) => handleInputChange("phone", e.target.value)}
+                  margin="normal"
+                  InputProps={{
+                    startAdornment: (
+                      <PhoneIcon sx={{ mr: 1, color: "text.secondary" }} />
+                    ),
+                    endAdornment: (
+                      <Tooltip title="Enviar mensagem no WhatsApp">
+                        <IconButton
+                          size="small"
+                          onClick={() => {
+                            const phone = lead.phone.replace(/\D/g, "");
+                            window.open(`https://wa.me/${phone}`, "_blank");
+                          }}
+                        >
+                          <WhatsAppIcon />
+                        </IconButton>
+                      </Tooltip>
+                    ),
+                  }}
+                />
+              </Grid>
+            </Grid>
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={1}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  select
+                  label="Produto"
+                  value={lead.product}
+                  onChange={(e) => handleInputChange("product", e.target.value)}
+                  margin="normal"
+                  SelectProps={{
+                    native: true,
+                  }}
+                >
+                  {products.map((product) => (
+                    <option key={product.id} value={product.name}>
+                      {product.name}
+                    </option>
+                  ))}
+                </TextField>
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  select
+                  label="Modelo"
+                  value={lead.model}
+                  onChange={(e) => handleInputChange("model", e.target.value)}
+                  margin="normal"
+                  SelectProps={{
+                    native: true,
+                  }}
+                >
+                  {(() => {
+                    const currentProduct = products.find(
+                      (p) => p.name === lead.product
+                    );
+                    const productId = currentProduct?.id || "1";
+                    const availableModels =
+                      models[productId as keyof typeof models] || [];
+                    return availableModels.map((model) => (
+                      <option key={model.id} value={model.name}>
+                        {model.name}
+                      </option>
+                    ));
+                  })()}
+                </TextField>
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Valor"
+                  type="number"
+                  value={value}
+                  onChange={handleValueChange}
+                  margin="normal"
+                  InputProps={{
+                    startAdornment: "R$ ",
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<SaveIcon />}
+                    onClick={handleSave}
+                  >
+                    Salvar
+                  </Button>
+                </Box>
+              </Grid>
+            </Grid>
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={2}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Origem do lead"
+                  value={lead.source}
+                  onChange={(e) => handleInputChange("source", e.target.value)}
+                  margin="normal"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Site"
+                  value={lead.site || ""}
+                  onChange={(e) => handleInputChange("site", e.target.value)}
+                  margin="normal"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Redes sociais"
+                  value={lead.socialMedia || ""}
+                  onChange={(e) => handleInputChange("socialMedia", e.target.value)}
+                  margin="normal"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Visita / Passagem"
+                  value={lead.visit || ""}
+                  onChange={(e) => handleInputChange("visit", e.target.value)}
+                  margin="normal"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<SaveIcon />}
+                    onClick={handleSave}
+                  >
+                    Salvar
+                  </Button>
+                </Box>
+              </Grid>
+            </Grid>
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={3}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  select
+                  label="Estágio do lead"
+                  value={lead.stage}
+                  onChange={(e) => handleInputChange("stage", e.target.value)}
+                  margin="normal"
+                  SelectProps={{
+                    native: true,
+                  }}
+                >
+                  <option value="Aguardando">Aguardando</option>
+                  <option value="Em atendimento">Em atendimento</option>
+                  <option value="Perdido">Perdido</option>
+                </TextField>
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  select
+                  label="Temperatura do lead"
+                  value={lead.temperature}
+                  onChange={(e) => handleInputChange("temperature", e.target.value)}
+                  margin="normal"
+                  SelectProps={{
+                    native: true,
+                  }}
+                >
+                  <option value="Cinza">Cinza (frio)</option>
+                  <option value="Amarelo">Amarelo (morno)</option>
+                  <option value="Vermelho">Vermelho (quente)</option>
+                </TextField>
+              </Grid>
+              <Grid item xs={12}>
+                <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<SaveIcon />}
+                    onClick={handleSave}
+                  >
+                    Salvar
+                  </Button>
+                </Box>
+              </Grid>
+            </Grid>
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={4}>
+            <Grid container spacing={2}>
+              {lead.messages.map((message) => (
+                <Grid item xs={12} key={message.id}>
+                  <Paper
+                    sx={{
+                      p: 2,
+                      backgroundColor:
+                        message.direction === "sent"
+                          ? "rgba(25, 118, 210, 0.08)"
+                          : "background.paper",
+                      color: "text.primary",
+                      maxWidth: "80%",
+                      ml: message.direction === "sent" ? "auto" : 0,
+                      position: "relative",
+                      border: message.direction === "sent" ? "1px solid rgba(25, 118, 210, 0.2)" : "1px solid rgba(0, 0, 0, 0.12)",
+                      "@media (prefers-color-scheme: dark)": {
+                        backgroundColor: message.direction === "sent" ? "rgba(25, 118, 210, 0.12)" : "background.paper",
+                        border: message.direction === "sent" ? "1px solid rgba(25, 118, 210, 0.3)" : "1px solid rgba(255, 255, 255, 0.12)",
+                      }
+                    }}
+                  >
+                    <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1 }}>
+                      {new Date(message.date).toLocaleString()}
+                    </Typography>
+                    <Typography>{message.content}</Typography>
+                  </Paper>
                 </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                    <PhoneIcon sx={{ mr: 1 }} />
-                    <Typography>{lead.phone}</Typography>
-                    <Tooltip title="Enviar mensagem no WhatsApp">
-                      <IconButton
-                        size="small"
-                        sx={{ ml: 1 }}
-                        onClick={() => {
-                          const phone = lead.phone.replace(/\D/g, "");
-                          window.open(`https://wa.me/${phone}`, "_blank");
+              ))}
+            </Grid>
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={5}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={4}
+                  label="Observações"
+                  value={lead.notes}
+                  onChange={(e) => handleInputChange("notes", e.target.value)}
+                  margin="normal"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<SaveIcon />}
+                    onClick={handleSave}
+                  >
+                    Salvar
+                  </Button>
+                </Box>
+              </Grid>
+            </Grid>
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={6}>
+            <Grid container spacing={4}>
+              <Grid item xs={12} md={5}>
+                <Paper sx={{ p: 3 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Novo Lembrete
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    label="Lembrete"
+                    value={newReminder.text}
+                    onChange={(e) => setNewReminder({ ...newReminder, text: e.target.value })}
+                    margin="normal"
+                  />
+                  <TextField
+                    fullWidth
+                    type="date"
+                    label="Data do Lembrete"
+                    value={newReminder.date ? newReminder.date.split('T')[0] : ""}
+                    onChange={(e) => setNewReminder({ ...newReminder, date: e.target.value + "T00:00:00Z" })}
+                    margin="normal"
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                  />
+                  <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      startIcon={<SaveIcon />}
+                      onClick={handleSave}
+                      fullWidth
+                    >
+                      Salvar
+                    </Button>
+                  </Box>
+                </Paper>
+              </Grid>
+              <Grid item xs={12} md={7}>
+                <Paper sx={{ p: 3 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Lembretes Cadastrados
+                  </Typography>
+                  <List>
+                    {lead.reminders.map((reminder) => (
+                      <ListItem
+                        key={reminder.id}
+                        sx={{
+                          backgroundColor: reminder.completed ? "rgba(0, 0, 0, 0.04)" : "background.paper",
+                          mb: 1,
+                          borderRadius: 1,
                         }}
                       >
-                        <WhatsAppIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                    <BusinessIcon sx={{ mr: 1 }} />
-                    <Typography>{lead.company}</Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                    <LocationIcon sx={{ mr: 1 }} />
-                    <Typography>Origem: {lead.source}</Typography>
-                  </Box>
-                </Grid>
+                        <ListItemText
+                          primary={reminder.text}
+                          secondary={new Date(reminder.date).toLocaleDateString()}
+                        />
+                        <ListItemSecondaryAction>
+                          <IconButton
+                            edge="end"
+                            onClick={() => handleToggleReminder(reminder.id)}
+                          >
+                            {reminder.completed ? <CheckCircleIcon color="success" /> : <RadioButtonUncheckedIcon />}
+                          </IconButton>
+                        </ListItemSecondaryAction>
+                      </ListItem>
+                    ))}
+                  </List>
+                </Paper>
               </Grid>
-
-              <Box sx={{ mt: 3 }}>
-                <Typography variant="h6" gutterBottom>
-                  Observações
-                </Typography>
-                <Typography>{lead.notes}</Typography>
-              </Box>
-            </Paper>
-          </Grid>
-
-          <Grid item xs={12} md={4}>
-            <Paper
-              sx={{
-                p: 3,
-                backgroundColor: "rgba(255, 255, 255, 0.1)",
-                backdropFilter: "blur(10px)",
-                WebkitBackdropFilter: "blur(10px)",
-                "@media (prefers-color-scheme: dark)": {
-                  backgroundColor: "rgba(0, 0, 0, 0.1)",
-                },
-              }}
-            >
-              <Typography variant="h6" gutterBottom>
-                Histórico
-              </Typography>
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <Box>
-                  <Typography variant="body2" color="text.secondary">
-                    Criado em
-                  </Typography>
-                  <Typography>
-                    {new Date(lead.createdAt).toLocaleDateString()}
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography variant="body2" color="text.secondary">
-                    Última atualização
-                  </Typography>
-                  <Typography>
-                    {new Date(lead.updatedAt).toLocaleDateString()}
-                  </Typography>
-                </Box>
-              </Box>
-            </Paper>
-          </Grid>
-        </Grid>
+            </Grid>
+          </TabPanel>
+        </Paper>
       </Box>
     </Layout>
   );
