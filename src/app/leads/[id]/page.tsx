@@ -1,182 +1,254 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from "react";
 import {
   Box,
   Typography,
   Paper,
-  Tabs,
-  Tab,
-  TextField,
-  Button,
   Grid,
-} from '@mui/material';
-import Layout from '@/components/Layout';
+  Button,
+  Chip,
+  Avatar,
+  IconButton,
+  Tooltip,
+} from "@mui/material";
+import {
+  Phone as PhoneIcon,
+  Email as EmailIcon,
+  LocationOn as LocationIcon,
+  Business as BusinessIcon,
+  WhatsApp as WhatsAppIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+} from "@mui/icons-material";
+import { useRouter } from "next/navigation";
+import Layout from "@/components/Layout";
+import { useNotification } from "@/contexts/NotificationContext";
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
+interface Lead {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  company: string;
+  status:
+    | "new"
+    | "contacted"
+    | "qualified"
+    | "proposal"
+    | "negotiation"
+    | "closed";
+  source: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
+const id = "123";
+export default function LeadDetails() {
+  const [lead, setLead] = useState<Lead | null>(null);
+  const router = useRouter();
+  const { showNotification } = useNotification();
 
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`lead-tabpanel-${index}`}
-      aria-labelledby={`lead-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-    </div>
-  );
-}
+  useEffect(() => {
+    // Aqui você faria a chamada à API para buscar os detalhes do lead
+    // Por enquanto, vamos usar dados mockados
+    setLead({
+      id: id,
+      name: "João Silva",
+      email: "joao@example.com",
+      phone: "(11) 99999-9999",
+      company: "Empresa XYZ",
+      status: "new",
+      source: "Website",
+      notes: "Cliente interessado em nosso produto premium.",
+      createdAt: "2024-01-01T10:00:00Z",
+      updatedAt: "2024-01-01T10:00:00Z",
+    });
+  }, [id]);
 
-export default function LeadDetailPage({ params }: { params: { id: string } }) {
-  const [tabValue, setTabValue] = useState(0);
-
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue);
+  const handleEdit = () => {
+    router.push(`/leads/${id}/edit`);
   };
 
-  // Mock data for demonstration
-  const lead = {
-    id: params.id,
-    name: 'João Silva',
-    email: 'joao@email.com',
-    phone: '(11) 99999-9999',
-    interest: 'Produto X',
-    source: 'Site',
-    status: 'Em Aberto',
-    history: [
-      { date: '2024-04-01', action: 'Lead criado' },
-      { date: '2024-04-02', action: 'Primeiro contato realizado' },
-    ],
-    observations: 'Cliente interessado em conhecer mais sobre o produto',
-    reminder: 'Ligar novamente em 7 dias',
+  const handleDelete = () => {
+    // Aqui você implementaria a lógica de deleção
+    showNotification("Lead deletado com sucesso!", "success");
+    router.push("/leads");
   };
+
+  const getStatusColor = (status: Lead["status"]) => {
+    switch (status) {
+      case "new":
+        return "default";
+      case "contacted":
+        return "primary";
+      case "qualified":
+        return "info";
+      case "proposal":
+        return "warning";
+      case "negotiation":
+        return "secondary";
+      case "closed":
+        return "success";
+      default:
+        return "default";
+    }
+  };
+
+  if (!lead) {
+    return (
+      <Layout>
+        <Box sx={{ p: 3 }}>
+          <Typography>Carregando...</Typography>
+        </Box>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
-      <Box sx={{ flexGrow: 1 }}>
-        <Typography variant="h4" gutterBottom>
-          Detalhes do Lead
-        </Typography>
-
-        <Paper sx={{ width: '100%' }}>
-          <Tabs
-            value={tabValue}
-            onChange={handleTabChange}
-            indicatorColor="primary"
-            textColor="primary"
-          >
-            <Tab label="Contato" />
-            <Tab label="Interesse" />
-            <Tab label="Fonte" />
-            <Tab label="Status" />
-            <Tab label="Histórico" />
-            <Tab label="Observações" />
-            <Tab label="Lembrete" />
-          </Tabs>
-
-          <TabPanel value={tabValue} index={0}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Nome"
-                  value={lead.name}
-                  margin="normal"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Email"
-                  value={lead.email}
-                  margin="normal"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Telefone"
-                  value={lead.phone}
-                  margin="normal"
-                />
-              </Grid>
-            </Grid>
-          </TabPanel>
-
-          <TabPanel value={tabValue} index={1}>
-            <TextField
-              fullWidth
-              label="Interesse"
-              value={lead.interest}
-              margin="normal"
-            />
-          </TabPanel>
-
-          <TabPanel value={tabValue} index={2}>
-            <TextField
-              fullWidth
-              label="Fonte"
-              value={lead.source}
-              margin="normal"
-            />
-          </TabPanel>
-
-          <TabPanel value={tabValue} index={3}>
-            <TextField
-              fullWidth
-              label="Status"
-              value={lead.status}
-              margin="normal"
-            />
-          </TabPanel>
-
-          <TabPanel value={tabValue} index={4}>
-            {lead.history.map((item, index) => (
-              <Box key={index} sx={{ mb: 2 }}>
-                <Typography variant="subtitle2">{item.date}</Typography>
-                <Typography>{item.action}</Typography>
-              </Box>
-            ))}
-          </TabPanel>
-
-          <TabPanel value={tabValue} index={5}>
-            <TextField
-              fullWidth
-              multiline
-              rows={4}
-              label="Observações"
-              value={lead.observations}
-              margin="normal"
-            />
-          </TabPanel>
-
-          <TabPanel value={tabValue} index={6}>
-            <TextField
-              fullWidth
-              label="Lembrete"
-              value={lead.reminder}
-              margin="normal"
-            />
-          </TabPanel>
-        </Paper>
-
-        <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
-          <Button variant="contained" color="primary">
-            Salvar
-          </Button>
-          <Button variant="outlined" color="secondary">
-            Cancelar
-          </Button>
+      <Box sx={{ p: 3 }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
+          <Typography variant="h4" component="h1">
+            Detalhes do Lead
+          </Typography>
+          <Box>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<EditIcon />}
+              onClick={handleEdit}
+              sx={{ mr: 1 }}
+            >
+              Editar
+            </Button>
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<DeleteIcon />}
+              onClick={handleDelete}
+            >
+              Excluir
+            </Button>
+          </Box>
         </Box>
+
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            <Paper
+              sx={{
+                p: 3,
+                backgroundColor: "rgba(255, 255, 255, 0.1)",
+                backdropFilter: "blur(10px)",
+                WebkitBackdropFilter: "blur(10px)",
+                "@media (prefers-color-scheme: dark)": {
+                  backgroundColor: "rgba(0, 0, 0, 0.1)",
+                },
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+                <Avatar sx={{ width: 64, height: 64, mr: 2 }}>
+                  {lead.name.charAt(0)}
+                </Avatar>
+                <Box>
+                  <Typography variant="h5" component="h2">
+                    {lead.name}
+                  </Typography>
+                  <Chip
+                    label={lead.status}
+                    color={getStatusColor(lead.status)}
+                    size="small"
+                    sx={{ mt: 1 }}
+                  />
+                </Box>
+              </Box>
+
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                    <EmailIcon sx={{ mr: 1 }} />
+                    <Typography>{lead.email}</Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                    <PhoneIcon sx={{ mr: 1 }} />
+                    <Typography>{lead.phone}</Typography>
+                    <Tooltip title="Enviar mensagem no WhatsApp">
+                      <IconButton
+                        size="small"
+                        sx={{ ml: 1 }}
+                        onClick={() => {
+                          const phone = lead.phone.replace(/\D/g, "");
+                          window.open(`https://wa.me/${phone}`, "_blank");
+                        }}
+                      >
+                        <WhatsAppIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                    <BusinessIcon sx={{ mr: 1 }} />
+                    <Typography>{lead.company}</Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                    <LocationIcon sx={{ mr: 1 }} />
+                    <Typography>Origem: {lead.source}</Typography>
+                  </Box>
+                </Grid>
+              </Grid>
+
+              <Box sx={{ mt: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                  Observações
+                </Typography>
+                <Typography>{lead.notes}</Typography>
+              </Box>
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <Paper
+              sx={{
+                p: 3,
+                backgroundColor: "rgba(255, 255, 255, 0.1)",
+                backdropFilter: "blur(10px)",
+                WebkitBackdropFilter: "blur(10px)",
+                "@media (prefers-color-scheme: dark)": {
+                  backgroundColor: "rgba(0, 0, 0, 0.1)",
+                },
+              }}
+            >
+              <Typography variant="h6" gutterBottom>
+                Histórico
+              </Typography>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <Box>
+                  <Typography variant="body2" color="text.secondary">
+                    Criado em
+                  </Typography>
+                  <Typography>
+                    {new Date(lead.createdAt).toLocaleDateString()}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="body2" color="text.secondary">
+                    Última atualização
+                  </Typography>
+                  <Typography>
+                    {new Date(lead.updatedAt).toLocaleDateString()}
+                  </Typography>
+                </Box>
+              </Box>
+            </Paper>
+          </Grid>
+        </Grid>
       </Box>
     </Layout>
   );
-} 
+}

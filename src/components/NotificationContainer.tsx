@@ -1,7 +1,6 @@
 "use client";
 
 import { Box } from "@mui/material";
-import Notification from "./Notification";
 
 interface NotificationContainerProps {
   children: React.ReactNode;
@@ -10,7 +9,7 @@ interface NotificationContainerProps {
 
 export default function NotificationContainer({
   children,
-  drawerOpen
+  drawerOpen,
 }: NotificationContainerProps) {
   return (
     <Box
@@ -24,7 +23,6 @@ export default function NotificationContainer({
         display: "flex",
         flexDirection: "column",
         gap: 1,
-        padding: "0 20px",
         padding: "20px",
 
         "&::-webkit-scrollbar": {
@@ -33,7 +31,6 @@ export default function NotificationContainer({
         "&::-webkit-scrollbar-track": {
           background: "transparent",
         },
-      
       }}
     >
       {children}

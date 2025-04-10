@@ -32,7 +32,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     <NotificationContext.Provider value={{ showNotification }}>
       {children}
       {notifications.length > 0 && (
-        <NotificationContainer>
+        <NotificationContainer drawerOpen>
           {notifications.map((notification) => (
             <Notification
               key={notification.id}
