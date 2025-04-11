@@ -32,9 +32,14 @@ import {
   Save as SaveIcon,
   CheckCircle as CheckCircleIcon,
   RadioButtonUnchecked as RadioButtonUncheckedIcon,
+  Send as SendIcon,
 } from "@mui/icons-material";
 import Layout from "@/components/Layout";
 import { useNotification } from "@/contexts/NotificationContext";
+import ContactTab from "@/components/lead-tabs/ContactTab";
+import HistoryTab from "@/components/lead-tabs/HistoryTab";
+import ReminderTab from "@/components/lead-tabs/ReminderTab";
+import NotesTab from "@/components/lead-tabs/NotesTab";
 
 interface Lead {
   id: string;
@@ -218,6 +223,8 @@ export default function LeadDetails({ params }: PageProps) {
     date: "",
   });
 
+  const [newMessage, setNewMessage] = useState("");
+
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
@@ -282,6 +289,30 @@ export default function LeadDetails({ params }: PageProps) {
     });
   };
 
+  const handleSendMessage = () => {
+    if (newMessage.trim()) {
+      const newMessageObj: {
+        id: string;
+        date: string;
+        type: "whatsapp" | "email" | "ligacao" | "visita";
+        content: string;
+        direction: "sent" | "received";
+      } = {
+        id: Date.now().toString(),
+        date: new Date().toISOString(),
+        type: "whatsapp",
+        content: newMessage,
+        direction: "sent",
+      };
+      setLead({
+        ...lead,
+        messages: [...lead.messages, newMessageObj],
+      });
+      setNewMessage("");
+      showNotification("Mensagem enviada com sucesso!", "success");
+    }
+  };
+
   return (
     <Layout>
       <Box sx={{ p: 3 }}>
@@ -334,73 +365,11 @@ export default function LeadDetails({ params }: PageProps) {
           </Tabs>
 
           <TabPanel value={tabValue} index={0}>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Nome"
-                  value={lead.name}
-                  onChange={(e) => handleInputChange("name", e.target.value)}
-                  margin="normal"
-                  InputProps={{
-                    startAdornment: (
-                      <BusinessIcon sx={{ mr: 1, color: "text.secondary" }} />
-                    ),
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="E-mail"
-                  value={lead.email}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
-                  margin="normal"
-                  InputProps={{
-                    startAdornment: (
-                      <EmailIcon sx={{ mr: 1, color: "text.secondary" }} />
-                    ),
-                  }}
-                />
-                <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<SaveIcon />}
-                    onClick={handleSave}
-                  >
-                    Salvar
-                  </Button>
-                </Box>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Telefone"
-                  value={lead.phone}
-                  onChange={(e) => handleInputChange("phone", e.target.value)}
-                  margin="normal"
-                  InputProps={{
-                    startAdornment: (
-                      <PhoneIcon sx={{ mr: 1, color: "text.secondary" }} />
-                    ),
-                    endAdornment: (
-                      <Tooltip title="Enviar mensagem no WhatsApp">
-                        <IconButton
-                          size="small"
-                          onClick={() => {
-                            const phone = lead.phone.replace(/\D/g, "");
-                            window.open(`https://wa.me/${phone}`, "_blank");
-                          }}
-                        >
-                          <WhatsAppIcon />
-                        </IconButton>
-                      </Tooltip>
-                    ),
-                  }}
-                />
-              </Grid>
-            </Grid>
+            <ContactTab
+              lead={lead}
+              onInputChange={handleInputChange}
+              onSave={handleSave}
+            />
           </TabPanel>
 
           <TabPanel value={tabValue} index={1}>
@@ -584,136 +553,32 @@ export default function LeadDetails({ params }: PageProps) {
           </TabPanel>
 
           <TabPanel value={tabValue} index={4}>
-            <Grid container spacing={2}>
-              {lead.messages.map((message) => (
-                <Grid item xs={12} key={message.id}>
-                  <Paper
-                    sx={{
-                      p: 2,
-                      backgroundColor:
-                        message.direction === "sent"
-                          ? "rgba(25, 118, 210, 0.08)"
-                          : "background.paper",
-                      color: "text.primary",
-                      maxWidth: "80%",
-                      ml: message.direction === "sent" ? "auto" : 0,
-                      position: "relative",
-                      border: message.direction === "sent" ? "1px solid rgba(25, 118, 210, 0.2)" : "1px solid rgba(0, 0, 0, 0.12)",
-                      "@media (prefers-color-scheme: dark)": {
-                        backgroundColor: message.direction === "sent" ? "rgba(25, 118, 210, 0.12)" : "background.paper",
-                        border: message.direction === "sent" ? "1px solid rgba(25, 118, 210, 0.3)" : "1px solid rgba(255, 255, 255, 0.12)",
-                      }
-                    }}
-                  >
-                    <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1 }}>
-                      {new Date(message.date).toLocaleString()}
-                    </Typography>
-                    <Typography>{message.content}</Typography>
-                  </Paper>
-                </Grid>
-              ))}
-            </Grid>
+            <HistoryTab
+              lead={lead}
+              newMessage={newMessage}
+              onNewMessageChange={setNewMessage}
+              onSendMessage={handleSendMessage}
+            />
           </TabPanel>
 
           <TabPanel value={tabValue} index={5}>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={4}
-                  label="Observações"
-                  value={lead.notes}
-                  onChange={(e) => handleInputChange("notes", e.target.value)}
-                  margin="normal"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<SaveIcon />}
-                    onClick={handleSave}
-                  >
-                    Salvar
-                  </Button>
-                </Box>
-              </Grid>
-            </Grid>
+            <NotesTab
+              lead={lead}
+              onInputChange={handleInputChange}
+              onSave={handleSave}
+            />
           </TabPanel>
 
           <TabPanel value={tabValue} index={6}>
-            <Grid container spacing={4}>
-              <Grid item xs={12} md={5}>
-                <Paper sx={{ p: 3 }}>
-                  <Typography variant="h6" gutterBottom>
-                    Novo Lembrete
-                  </Typography>
-                  <TextField
-                    fullWidth
-                    label="Lembrete"
-                    value={newReminder.text}
-                    onChange={(e) => setNewReminder({ ...newReminder, text: e.target.value })}
-                    margin="normal"
-                  />
-                  <TextField
-                    fullWidth
-                    type="date"
-                    label="Data do Lembrete"
-                    value={newReminder.date ? newReminder.date.split('T')[0] : ""}
-                    onChange={(e) => setNewReminder({ ...newReminder, date: e.target.value + "T00:00:00Z" })}
-                    margin="normal"
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                  />
-                  <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      startIcon={<SaveIcon />}
-                      onClick={handleSave}
-                      fullWidth
-                    >
-                      Salvar
-                    </Button>
-                  </Box>
-                </Paper>
-              </Grid>
-              <Grid item xs={12} md={7}>
-                <Paper sx={{ p: 3 }}>
-                  <Typography variant="h6" gutterBottom>
-                    Lembretes Cadastrados
-                  </Typography>
-                  <List>
-                    {lead.reminders.map((reminder) => (
-                      <ListItem
-                        key={reminder.id}
-                        sx={{
-                          backgroundColor: reminder.completed ? "rgba(0, 0, 0, 0.04)" : "background.paper",
-                          mb: 1,
-                          borderRadius: 1,
-                        }}
-                      >
-                        <ListItemText
-                          primary={reminder.text}
-                          secondary={new Date(reminder.date).toLocaleDateString()}
-                        />
-                        <ListItemSecondaryAction>
-                          <IconButton
-                            edge="end"
-                            onClick={() => handleToggleReminder(reminder.id)}
-                          >
-                            {reminder.completed ? <CheckCircleIcon color="success" /> : <RadioButtonUncheckedIcon />}
-                          </IconButton>
-                        </ListItemSecondaryAction>
-                      </ListItem>
-                    ))}
-                  </List>
-                </Paper>
-              </Grid>
-            </Grid>
+            <ReminderTab
+              lead={lead}
+              newReminder={newReminder}
+              onNewReminderChange={(field, value) =>
+                setNewReminder({ ...newReminder, [field]: value })
+              }
+              onSave={handleSave}
+              onToggleReminder={handleToggleReminder}
+            />
           </TabPanel>
         </Paper>
       </Box>

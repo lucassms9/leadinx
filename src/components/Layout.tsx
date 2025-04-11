@@ -138,7 +138,7 @@ export default function Layout({ children }: LayoutProps) {
       >
         <Toolbar />
         {children}
-        <button
+        {/* <button
           onClick={() => showNotification("Mensagem de sucesso!", "success")}
         >
           Mostrar Notificação de Sucesso
@@ -153,7 +153,7 @@ export default function Layout({ children }: LayoutProps) {
         </button>
         <button onClick={() => showNotification("Atenção!", "warning")}>
           Mostrar Notificação de Atenção
-        </button>
+        </button> */}
       </Box>
     </Box>
   );
