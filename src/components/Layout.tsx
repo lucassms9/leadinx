@@ -16,12 +16,14 @@ import {
   ListItemText,
   useTheme,
   useMediaQuery,
+  CssBaseline,
 } from "@mui/material";
 import {
   Menu as MenuIcon,
   ChevronLeft as ChevronLeftIcon,
   Dashboard as DashboardIcon,
   People as PeopleIcon,
+  PersonAdd as PersonAddIcon,
   LightMode as LightModeIcon,
   DarkMode as DarkModeIcon,
   Settings as SettingsIcon,
@@ -50,12 +52,30 @@ export default function Layout({ children }: LayoutProps) {
 
   const menuItems = [
     { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
-    { text: "Leads", icon: <PeopleIcon />, path: "/leads" },
+    { text: "Leads", icon: <PersonAddIcon />, path: "/leads" },
+    { text: "Usuários", icon: <PeopleIcon />, path: "/users" },
     { text: "Configurações", icon: <SettingsIcon />, path: "/settings" },
   ];
 
+  const drawer = (
+    <div>
+      <Toolbar />
+      <List>
+        {menuItems.map((item) => (
+          <ListItem key={item.text} disablePadding>
+            <ListItemButton onClick={() => router.push(item.path)}>
+              <ListItemIcon>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.text} />
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
+    </div>
+  );
+
   return (
     <Box sx={{ display: "flex" }}>
+      <CssBaseline />
       <AppBar
         position="fixed"
         sx={{
@@ -112,16 +132,7 @@ export default function Layout({ children }: LayoutProps) {
             </IconButton>
           </Box>
           <Divider />
-          <List>
-            {menuItems.map((item) => (
-              <ListItem key={item.text} disablePadding>
-                <ListItemButton onClick={() => router.push(item.path)}>
-                  <ListItemIcon>{item.icon}</ListItemIcon>
-                  <ListItemText primary={item.text} />
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
+          {drawer}
         </Drawer>
       </Box>
       <Box

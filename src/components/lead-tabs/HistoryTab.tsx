@@ -30,7 +30,7 @@ export default function HistoryTab({
             Histórico de Mensagens
           </Typography>
           <Box sx={{ maxHeight: "60vh", overflowY: "auto", mb: 2 }}>
-            {lead.messages.map((message) => (
+            {lead?.messages?.map((message) => (
               <Paper
                 key={message.id}
                 sx={{

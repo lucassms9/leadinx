@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState } from "react";
 import {
@@ -11,21 +11,29 @@ import {
   Checkbox,
   IconButton,
 } from "@mui/material";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import { Lead } from "@/types/lead";
 import { useNotification } from "@/contexts/NotificationContext";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { SupervisorAccount, Person, WhatsApp } from "@mui/icons-material";
-import Layout from '@/components/Layout';
+import Layout from "@/components/Layout";
 
 const StatCard = ({ title, value }: { title: string; value: number }) => (
   <Paper
     sx={{
       p: 3,
-      display: 'flex',
-      flexDirection: 'column',
+      display: "flex",
+      flexDirection: "column",
       height: 140,
     }}
   >
@@ -66,13 +74,13 @@ const mockLeads: Lead[] = [
         id: "1",
         text: "Ligar para cliente amanhã às 10h",
         completed: false,
-        createdAt: new Date().toISOString(),
+        date: new Date().toISOString(),
       },
       {
         id: "2",
         text: "Enviar proposta comercial",
         completed: true,
-        createdAt: new Date(Date.now() - 86400000).toISOString(),
+        date: new Date(Date.now() - 86400000).toISOString(),
       },
     ],
     history: [],
@@ -93,7 +101,7 @@ const mockLeads: Lead[] = [
     createdAt: new Date(Date.now() - 86400000).toISOString(),
     updatedAt: new Date(Date.now() - 86400000).toISOString(),
     messages: [],
-    status: "contacted",
+    status: "new",
     interest: "Médio",
     product: "Produto B",
     model: "Modelo Y",
@@ -103,7 +111,7 @@ const mockLeads: Lead[] = [
         id: "3",
         text: "Agendar reunião de apresentação",
         completed: false,
-        createdAt: new Date().toISOString(),
+        date: new Date().toISOString(),
       },
     ],
     history: [],
@@ -126,31 +134,33 @@ export default function Dashboard() {
   };
 
   const handleReminderToggle = (leadId: string, reminderId: string) => {
-    setLeads(leads.map(lead => {
-      if (lead.id === leadId) {
-        return {
-          ...lead,
-          reminders: lead.reminders.map(reminder => {
-            if (reminder.id === reminderId) {
-              return {
-                ...reminder,
-                completed: !reminder.completed
-              };
-            }
-            return reminder;
-          })
-        };
-      }
-      return lead;
-    }));
+    setLeads(
+      leads.map((lead) => {
+        if (lead.id === leadId) {
+          return {
+            ...lead,
+            reminders: lead?.reminders?.map((reminder) => {
+              if (reminder.id === reminderId) {
+                return {
+                  ...reminder,
+                  completed: !reminder.completed,
+                };
+              }
+              return reminder;
+            }),
+          };
+        }
+        return lead;
+      })
+    );
   };
 
   // Mock data for demonstration
   const stats = [
-    { title: 'Total Leads', value: 150 },
-    { title: 'Leads em Aberto', value: 45 },
-    { title: 'Leads Atendidos', value: 85 },
-    { title: 'Leads Descartados', value: 20 },
+    { title: "Total Leads", value: 150 },
+    { title: "Leads em Aberto", value: 45 },
+    { title: "Leads Atendidos", value: 85 },
+    { title: "Leads Descartados", value: 20 },
   ];
 
   return (
@@ -196,7 +206,7 @@ export default function Dashboard() {
                 </Typography>
                 <Box sx={{ maxHeight: 400, overflowY: "auto" }}>
                   {leads
-                    .filter((lead) => lead.reminders.length > 0)
+                    .filter((lead) => (lead?.reminders?.length ?? 0) > 0)
                     .map((lead) => (
                       <Paper
                         key={lead.id}
@@ -214,7 +224,7 @@ export default function Dashboard() {
                         <Typography variant="subtitle1" gutterBottom>
                           {lead.name}
                         </Typography>
-                        {lead.reminders.map((reminder) => (
+                        {lead?.reminders?.map((reminder) => (
                           <Box
                             key={reminder.id}
                             sx={{
@@ -226,23 +236,39 @@ export default function Dashboard() {
                           >
                             <Checkbox
                               checked={reminder.completed}
-                              onChange={() => handleReminderToggle(lead.id, reminder.id)}
+                              onChange={() =>
+                                handleReminderToggle(
+                                  lead?.id ?? "",
+                                  reminder.id
+                                )
+                              }
                               onClick={(e) => e.stopPropagation()}
                             />
                             <Typography
                               variant="body2"
                               sx={{
-                                textDecoration: reminder.completed ? "line-through" : "none",
-                                color: reminder.completed ? "text.secondary" : "text.primary",
+                                textDecoration: reminder.completed
+                                  ? "line-through"
+                                  : "none",
+                                color: reminder.completed
+                                  ? "text.secondary"
+                                  : "text.primary",
                                 flex: 1,
                               }}
                             >
                               {reminder.text}
                             </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {format(new Date(reminder.createdAt), "dd/MM/yyyy HH:mm", {
-                                locale: ptBR,
-                              })}
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              {format(
+                                new Date(reminder.date),
+                                "dd/MM/yyyy HH:mm",
+                                {
+                                  locale: ptBR,
+                                }
+                              )}
                             </Typography>
                           </Box>
                         ))}
@@ -259,7 +285,11 @@ export default function Dashboard() {
                 </Typography>
                 <Box sx={{ maxHeight: 400, overflowY: "auto" }}>
                   {leads
-                    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                    .sort(
+                      (a, b) =>
+                        new Date(b.createdAt ?? "").getTime() -
+                        new Date(a.createdAt ?? "").getTime()
+                    )
                     .slice(0, 5)
                     .map((lead) => (
                       <Paper
@@ -274,18 +304,34 @@ export default function Dashboard() {
                           },
                         }}
                       >
-                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <Box onClick={() => router.push(`/leads/${lead.id}`)} sx={{ flex: 1 }}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Box
+                            onClick={() => router.push(`/leads/${lead.id}`)}
+                            sx={{ flex: 1 }}
+                          >
                             <Typography variant="subtitle1" gutterBottom>
                               {lead.name}
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
                               {lead.email}
                             </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {format(new Date(lead.createdAt), "dd/MM/yyyy HH:mm", {
-                                locale: ptBR,
-                              })}
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              {format(
+                                new Date(lead.createdAt ?? ""),
+                                "dd/MM/yyyy HH:mm",
+                                {
+                                  locale: ptBR,
+                                }
+                              )}
                             </Typography>
                           </Box>
                           <IconButton
@@ -310,4 +356,4 @@ export default function Dashboard() {
       </Box>
     </Layout>
   );
-} 
+}

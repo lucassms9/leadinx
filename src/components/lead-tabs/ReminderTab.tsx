@@ -64,7 +64,7 @@ export default function ReminderTab({
             Lembretes Cadastrados
           </Typography>
           <List>
-            {lead.reminders.map((reminder) => (
+            {lead?.reminders?.map((reminder) => (
               <ListItem
                 key={reminder.id}
                 sx={{

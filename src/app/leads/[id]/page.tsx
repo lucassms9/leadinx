@@ -55,7 +55,7 @@ interface Lead {
     | "negotiation"
     | "closed";
   stage: "Aguardando" | "Em atendimento" | "Perdido";
-  temperature: "Cinza" | "Amarelo" | "Vermelho";
+  temperature: string;
   source: string;
   notes: string;
   interest: string;
@@ -120,72 +120,61 @@ export default function LeadDetails({ params }: PageProps) {
   const { showNotification } = useNotification();
 
   // Mock data for demonstration
-  const [lead, setLead] = useState<Lead>({
-    id: params.id,
+  const mockLead: Lead = {
+    id: "1",
     name: "João Silva",
-    email: "joao@example.com",
+    email: "joao@email.com",
     phone: "(11) 99999-9999",
     company: "Empresa XYZ",
-    status: "new",
     stage: "Aguardando",
     temperature: "Cinza",
-    source: "Website",
-    notes: "Cliente interessado em nosso produto premium.",
-    interest: "Produto Premium",
-    product: "Sedan",
-    model: "Comfort",
-    value: 4999.99,
-    reminders: [
-      {
-        id: "1",
-        text: "Ligar novamente em 7 dias",
-        date: "2024-01-07T00:00:00Z",
-        completed: false,
-      },
-      {
-        id: "2",
-        text: "Enviar proposta comercial",
-        date: "2024-01-10T00:00:00Z",
-        completed: true,
-      },
-    ],
+    source: "Site",
+    site: "www.empresa.com",
+    socialMedia: "@empresa",
+    visit: "Loja principal",
+    notes: "Cliente interessado em produtos da linha premium",
+    createdAt: "2024-01-01T10:00:00Z",
+    updatedAt: "2024-01-15T15:30:00Z",
+    status: "new",
+    interest: "Produtos de limpeza",
+    product: "Detergente",
+    model: "Premium",
+    value: 29.99,
     messages: [
       {
         id: "1",
         date: "2024-01-01T10:00:00Z",
         type: "whatsapp",
-        content: "Olá, gostaria de saber mais sobre o carro que vi no site.",
+        content: "Olá, gostaria de informações sobre seus produtos",
         direction: "received",
       },
       {
         id: "2",
         date: "2024-01-01T10:05:00Z",
         type: "whatsapp",
-        content: "Claro! Qual modelo você está interessado?",
+        content: "Claro! Em que posso ajudar?",
         direction: "sent",
       },
+    ],
+    reminders: [
       {
-        id: "3",
-        date: "2024-01-02T15:30:00Z",
-        type: "email",
-        content: "Enviando a proposta comercial conforme solicitado.",
-        direction: "sent",
-      },
-      {
-        id: "4",
-        date: "2024-01-03T09:00:00Z",
-        type: "ligacao",
-        content: "Cliente confirmou interesse no modelo Sedan Comfort.",
-        direction: "sent",
+        id: "1",
+        text: "Ligar para cliente",
+        date: "2024-01-20T10:00:00Z",
+        completed: false,
       },
     ],
     history: [
-      { date: "2024-01-01", action: "Lead criado" },
-      { date: "2024-01-02", action: "Primeiro contato realizado" },
+      {
+        date: "2024-01-01T10:00:00Z",
+        action: "Lead criado",
+      },
+      {
+        date: "2024-01-15T15:30:00Z",
+        action: "Atualização de status",
+      },
     ],
-    createdAt: "2024-01-01T10:00:00Z",
-    updatedAt: "2024-01-01T10:00:00Z",
-  });
+  };
 
   // Mock data for products and models
   const products = [
@@ -237,20 +226,17 @@ export default function LeadDetails({ params }: PageProps) {
         date: newReminder.date,
         completed: false,
       };
-      setLead({
-        ...lead,
-        reminders: [...lead.reminders, newReminderObj],
-      });
+      mockLead.reminders.push(newReminderObj);
       setNewReminder({ text: "", date: "" });
       showNotification("Lembrete adicionado com sucesso!", "success");
     }
   };
 
-  const handleInputChange = (field: keyof Lead, value: string | number) => {
-    setLead({
-      ...lead,
-      [field]: value,
-    });
+  const handleInputChange = <T extends keyof Lead>(
+    field: T,
+    value: Lead[T]
+  ) => {
+    mockLead[field] = value;
   };
 
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -279,14 +265,11 @@ export default function LeadDetails({ params }: PageProps) {
   };
 
   const handleToggleReminder = (id: string) => {
-    setLead({
-      ...lead,
-      reminders: lead.reminders.map((reminder) =>
-        reminder.id === id
-          ? { ...reminder, completed: !reminder.completed }
-          : reminder
-      ),
-    });
+    mockLead.reminders = mockLead.reminders.map((reminder) =>
+      reminder.id === id
+        ? { ...reminder, completed: !reminder.completed }
+        : reminder
+    );
   };
 
   const handleSendMessage = () => {
@@ -304,10 +287,7 @@ export default function LeadDetails({ params }: PageProps) {
         content: newMessage,
         direction: "sent",
       };
-      setLead({
-        ...lead,
-        messages: [...lead.messages, newMessageObj],
-      });
+      mockLead.messages.push(newMessageObj);
       setNewMessage("");
       showNotification("Mensagem enviada com sucesso!", "success");
     }
@@ -319,15 +299,15 @@ export default function LeadDetails({ params }: PageProps) {
         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Avatar sx={{ width: 64, height: 64, mr: 2 }}>
-              {lead.name.charAt(0)}
+              {mockLead.name.charAt(0)}
             </Avatar>
             <Box>
               <Typography variant="h4" component="h1">
-                {lead.name}
+                {mockLead.name}
               </Typography>
               <Chip
-                label={lead.status}
-                color={getStatusColor(lead.status)}
+                label={mockLead.status}
+                color={getStatusColor(mockLead.status)}
                 size="small"
                 sx={{ mt: 1 }}
               />
@@ -366,7 +346,7 @@ export default function LeadDetails({ params }: PageProps) {
 
           <TabPanel value={tabValue} index={0}>
             <ContactTab
-              lead={lead}
+              lead={mockLead}
               onInputChange={handleInputChange}
               onSave={handleSave}
             />
@@ -379,7 +359,7 @@ export default function LeadDetails({ params }: PageProps) {
                   fullWidth
                   select
                   label="Produto"
-                  value={lead.product}
+                  value={mockLead.product}
                   onChange={(e) => handleInputChange("product", e.target.value)}
                   margin="normal"
                   SelectProps={{
@@ -398,7 +378,7 @@ export default function LeadDetails({ params }: PageProps) {
                   fullWidth
                   select
                   label="Modelo"
-                  value={lead.model}
+                  value={mockLead.model}
                   onChange={(e) => handleInputChange("model", e.target.value)}
                   margin="normal"
                   SelectProps={{
@@ -407,7 +387,7 @@ export default function LeadDetails({ params }: PageProps) {
                 >
                   {(() => {
                     const currentProduct = products.find(
-                      (p) => p.name === lead.product
+                      (p) => p.name === mockLead.product
                     );
                     const productId = currentProduct?.id || "1";
                     const availableModels =
@@ -454,7 +434,7 @@ export default function LeadDetails({ params }: PageProps) {
                 <TextField
                   fullWidth
                   label="Origem do lead"
-                  value={lead.source}
+                  value={mockLead.source}
                   onChange={(e) => handleInputChange("source", e.target.value)}
                   margin="normal"
                 />
@@ -463,7 +443,7 @@ export default function LeadDetails({ params }: PageProps) {
                 <TextField
                   fullWidth
                   label="Site"
-                  value={lead.site || ""}
+                  value={mockLead.site || ""}
                   onChange={(e) => handleInputChange("site", e.target.value)}
                   margin="normal"
                 />
@@ -472,8 +452,10 @@ export default function LeadDetails({ params }: PageProps) {
                 <TextField
                   fullWidth
                   label="Redes sociais"
-                  value={lead.socialMedia || ""}
-                  onChange={(e) => handleInputChange("socialMedia", e.target.value)}
+                  value={mockLead.socialMedia || ""}
+                  onChange={(e) =>
+                    handleInputChange("socialMedia", e.target.value)
+                  }
                   margin="normal"
                 />
               </Grid>
@@ -481,7 +463,7 @@ export default function LeadDetails({ params }: PageProps) {
                 <TextField
                   fullWidth
                   label="Visita / Passagem"
-                  value={lead.visit || ""}
+                  value={mockLead.visit || ""}
                   onChange={(e) => handleInputChange("visit", e.target.value)}
                   margin="normal"
                 />
@@ -508,8 +490,10 @@ export default function LeadDetails({ params }: PageProps) {
                   fullWidth
                   select
                   label="Estágio do lead"
-                  value={lead.stage}
-                  onChange={(e) => handleInputChange("stage", e.target.value)}
+                  value={mockLead.stage}
+                  onChange={(e) =>
+                    handleInputChange("stage", e.target.value as Lead["stage"])
+                  }
                   margin="normal"
                   SelectProps={{
                     native: true,
@@ -525,8 +509,10 @@ export default function LeadDetails({ params }: PageProps) {
                   fullWidth
                   select
                   label="Temperatura do lead"
-                  value={lead.temperature}
-                  onChange={(e) => handleInputChange("temperature", e.target.value)}
+                  value={mockLead.temperature}
+                  onChange={(e) =>
+                    handleInputChange("temperature", e.target.value)
+                  }
                   margin="normal"
                   SelectProps={{
                     native: true,
@@ -554,7 +540,7 @@ export default function LeadDetails({ params }: PageProps) {
 
           <TabPanel value={tabValue} index={4}>
             <HistoryTab
-              lead={lead}
+              lead={mockLead}
               newMessage={newMessage}
               onNewMessageChange={setNewMessage}
               onSendMessage={handleSendMessage}
@@ -563,7 +549,7 @@ export default function LeadDetails({ params }: PageProps) {
 
           <TabPanel value={tabValue} index={5}>
             <NotesTab
-              lead={lead}
+              lead={mockLead}
               onInputChange={handleInputChange}
               onSave={handleSave}
             />
@@ -571,7 +557,7 @@ export default function LeadDetails({ params }: PageProps) {
 
           <TabPanel value={tabValue} index={6}>
             <ReminderTab
-              lead={lead}
+              lead={mockLead}
               newReminder={newReminder}
               onNewReminderChange={(field, value) =>
                 setNewReminder({ ...newReminder, [field]: value })
